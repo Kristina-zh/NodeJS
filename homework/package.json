@@ -1,0 +1,43 @@
+{
+  "name": "goit-lessons",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cd bc1on/3_web_service_example && npm i && node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alucardpetrovich/goit-lessons.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alucardpetrovich/goit-lessons/issues"
+  },
+  "homepage": "https://github.com/alucardpetrovich/goit-lessons#readme",
+  "dependencies": {
+    "@hapi/joi": "^17.1.1",
+    "axios": "^0.21.0",
+    "bcryptjs": "^2.4.3",
+    "bluebird": "^3.7.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "morgan": "^1.10.0",
+    "node-validator": "^0.1.27",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
+    "ws": "^7.2.0"
+  },
+  "devDependencies": {
+    "jest": "^26.1.0",
+    "jest-plugin-context": "^2.9.0",
+    "mocha": "^6.2.2",
+    "should": "^13.2.3",
+    "supertest": "^4.0.2",
+    "supertest-promised": "^1.0.0"
+  },
+  "keywords": []
+}
