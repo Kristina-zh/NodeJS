@@ -1,1 +1,1 @@
-# goit-lessons
+# NodeJS homeworks
