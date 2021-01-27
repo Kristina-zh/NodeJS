@@ -1,11 +1,12 @@
 {
-  "name": "goit-lessons",
+  "name": "homework",
+  "type": "commonjs",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cd bc1on/3_web_service_example && npm i && node server.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -27,9 +28,11 @@
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
     "node-validator": "^0.1.27",
+    "nodemon": "^2.0.6",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
-    "ws": "^7.2.0"
+    "ws": "^7.2.0",
+    "yargs": "^16.2.0"
   },
   "devDependencies": {
     "jest": "^26.1.0",
