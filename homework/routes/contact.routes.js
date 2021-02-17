@@ -17,7 +17,6 @@ router.post(
 router.delete(
   "/:contactId",
   ContactController.validateContactId,
-  // ContactController.validateRemoveContact,
   ContactController.removeContact
 );
 router.patch(

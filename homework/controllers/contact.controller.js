@@ -1,16 +1,17 @@
-const contacts = require("../models/contacts.json");
+// const { v4: uuidv4 } = require("uuid");
 const Joi = require("joi");
 const path = require("path");
 const low = require("lowdb");
 const FileSync = require("lowdb/adapters/FileSync");
-
 const adapter = new FileSync(path.join(__dirname, "../models/contacts.json"));
 const db = low(adapter);
+
+const contacts = db.get("contacts");
 
 class ContactController {
   findContactIndex(contactId) {
     const findId = +contactId;
-    return contacts.findIndex(({ id }) => id === findId);
+    return findId;
   }
 
   validateContactId = (req, res, next) => {
@@ -20,17 +21,18 @@ class ContactController {
 
     const id = this.findContactIndex(contactId);
 
-    if (id === -1) {
+    const idArr = db
+      .get("contacts")
+      .value()
+      .map(i => i.id);
+
+    if (!idArr.includes(id)) {
       return res.status(404).send("Not found");
     }
     next();
   };
 
   listContacts = (req, res, next) => {
-    console.log(
-      "DB12399 :",
-      db.get("contacts").push({ id: 1, title: "lowdb is awesome" })
-    );
     res.json(contacts);
   };
 
@@ -39,24 +41,28 @@ class ContactController {
       params: { contactId }
     } = req;
 
-    const id = this.findContactIndex(contactId);
+    const findId = this.findContactIndex(contactId);
 
-    const getById = contacts[id];
-
-    res.json(getById);
-
-    next();
+    res.send(
+      db
+        .get("contacts")
+        .find({ id: findId })
+        .value()
+    );
   };
 
-  addContact(req, res) {
+  async addContact(req, res) {
     const { body } = req;
 
+    const idArrLength = db
+      .get("contacts")
+      .value()
+      .map(i => i.id).length;
+
     const addContact = {
-      id: contacts.length + 1,
+      id: idArrLength + 1,
       ...body
     };
-
-    contacts.push(addContact);
 
     db.get("contacts")
       .push(addContact)
@@ -70,7 +76,7 @@ class ContactController {
       name: Joi.string().required(),
       email: Joi.string().required(),
       phone: Joi.string().required()
-    });
+    }).min(1);
 
     const validationResult = validationRules.validate(req.body);
 
@@ -80,17 +86,16 @@ class ContactController {
     next();
   }
 
-  removeContact = (res, req, next) => {
+  removeContact = (req, res, next) => {
     const {
       params: { contactId }
     } = req;
 
-    const id = this.findContactIndex(contactId);
+    const findId = this.findContactIndex(contactId);
 
-    console.log("id :", id);
-
-    const removeContact = contacts.splice(id, 1);
-    console.log("removeContact :", removeContact);
+    db.get("contacts")
+      .remove({ id: findId })
+      .write();
 
     res.status(200).json("contact deleted");
     next();
@@ -100,20 +105,12 @@ class ContactController {
     const validationRules = Joi.object({
       name: Joi.string(),
       email: Joi.string(),
-      password: Joi.string()
-    });
+      phone: Joi.string()
+    }).min(1);
 
     const validationResult = validationRules.validate(req.body);
 
-    console.log(
-      "validationResult :",
-      JSON.stringify(validationResult.value) == "{}"
-    );
-
-    if (
-      validationResult.error ||
-      JSON.stringify(validationResult.value) == "{}"
-    ) {
+    if (validationResult.error) {
       return res.status(400).send("missing fields");
     }
     next();
