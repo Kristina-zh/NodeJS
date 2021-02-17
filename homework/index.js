@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-const contactRouter = require("./hw2/routes/contact.routes.js");
+const contactRouter = require("./routes/contact.routes.js");
 
 const PORT = process.env.port || 8080;
 
