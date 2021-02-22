@@ -1,74 +1,57 @@
-// const { v4: uuidv4 } = require("uuid");
 const Joi = require("joi");
-const path = require("path");
-const low = require("lowdb");
-const FileSync = require("lowdb/adapters/FileSync");
-const adapter = new FileSync(path.join(__dirname, "../models/contacts.json"));
-const db = low(adapter);
+const { MongoClient, ObjectID } = require("mongodb");
+const dotenv = require("dotenv");
 
-const contacts = db.get("contacts");
+dotenv.config();
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_NAME = process.env.DB_NAME;
+const MONGO_URL = `mongodb+srv://admin:${DB_PASSWORD}@cluster0.sdulz.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
+
+let users;
+
+start();
+
+async function start() {
+  const client = await MongoClient.connect(MONGO_URL);
+  const db = client.db();
+
+  users = db.collection("users");
+}
 
 class ContactController {
-  findContactIndex(contactId) {
-    const findId = +contactId;
-    return findId;
-  }
-
   validateContactId = (req, res, next) => {
     const {
       params: { contactId }
     } = req;
 
-    const id = this.findContactIndex(contactId);
-
-    const idArr = db
-      .get("contacts")
-      .value()
-      .map(i => i.id);
-
-    if (!idArr.includes(id)) {
-      return res.status(404).send("Not found");
+    if (!ObjectID.isValid(contactId)) {
+      return res.status(400).send("Your id is not valid");
     }
     next();
   };
 
-  listContacts = (req, res, next) => {
-    res.json(contacts);
-  };
+  async listContacts(req, res) {
+    const data = await users.find().toArray();
+    res.json(data);
+  }
 
-  getById = (req, res, next) => {
+  async getById(req, res, next) {
     const {
       params: { contactId }
     } = req;
 
-    const findId = this.findContactIndex(contactId);
+    const getUser = await users.findOne({
+      _id: ObjectID(contactId)
+    });
 
-    res.send(
-      db
-        .get("contacts")
-        .find({ id: findId })
-        .value()
-    );
-  };
+    res.json(getUser);
+    next();
+  }
 
   async addContact(req, res) {
     const { body } = req;
-
-    const idArrLength = db
-      .get("contacts")
-      .value()
-      .map(i => i.id).length;
-
-    const addContact = {
-      id: idArrLength + 1,
-      ...body
-    };
-
-    db.get("contacts")
-      .push(addContact)
-      .write();
-
-    res.status(201).json(addContact);
+    const data = await users.insertOne(body);
+    res.json(data.ops[0]);
   }
 
   validateAddContact(req, res, next) {
@@ -86,20 +69,19 @@ class ContactController {
     next();
   }
 
-  removeContact = (req, res, next) => {
+  async removeContact(req, res, next) {
     const {
       params: { contactId }
     } = req;
 
-    const findId = this.findContactIndex(contactId);
+    const deletedUser = await users.deleteOne({
+      _id: ObjectID(contactId)
+    });
 
-    db.get("contacts")
-      .remove({ id: findId })
-      .write();
+    res.json(deletedUser);
 
-    res.status(200).json("contact deleted");
     next();
-  };
+  }
 
   validateUpdateContact = (req, res, next) => {
     const validationRules = Joi.object({
@@ -116,24 +98,24 @@ class ContactController {
     next();
   };
 
-  updateContact = (req, res, next) => {
+  async updateContact(req, res, next) {
     const {
       params: { contactId }
     } = req;
 
-    const id = this.findContactIndex(contactId);
+    const updatedUser = await users.updateOne(
+      {
+        _id: ObjectID(contactId)
+      },
+      {
+        $set: req.body
+      }
+    );
 
-    const updatedContact = {
-      ...contacts[id],
-      ...req.body
-    };
-
-    contacts[id] = updatedContact;
-
-    res.json(updatedContact);
+    res.json(updatedUser);
 
     next();
-  };
+  }
 }
 
 module.exports = new ContactController();
