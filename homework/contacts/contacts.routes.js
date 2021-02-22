@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const ContactController = require("../controllers/contact.controller");
+const ContactController = require("./contacts.controller");
 
 const router = Router();
 
@@ -9,11 +9,7 @@ router.get(
   ContactController.validateContactId,
   ContactController.getById
 );
-router.post(
-  "/",
-  ContactController.validateAddContact,
-  ContactController.addContact
-);
+router.post("/", ContactController.addContact);
 router.delete(
   "/:contactId",
   ContactController.validateContactId,

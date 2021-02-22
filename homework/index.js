@@ -1,43 +1,52 @@
 const express = require("express");
-const cors = require("cors");
-const morgan = require("morgan");
-const contactRouter = require("./routes/contact.routes.js");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const contactsRouter = require("./contacts/contacts.routes");
+
+dotenv.config();
 
 const PORT = process.env.port || 8080;
 
-class Server {
-  constructor() {
-    this.server = null;
-  }
+start();
 
-  start() {
-    this.server = express();
-    this.initMiddlewares();
-    this.initRoutes();
-    this.listen();
-  }
-
-  initMiddlewares() {
-    this.server.use(express.json());
-    this.server.use(morgan("combined"));
-    this.server.use(
-      cors({
-        origin: "*"
-      })
-    );
-  }
-
-  initRoutes() {
-    this.server.use("/api/contacts", contactRouter);
-  }
-
-  listen() {
-    this.server.listen(PORT, () => {
-      console.log("Server is listening:", PORT);
-    });
-  }
+function start() {
+  const app = initServer();
+  connectMiddlewares(app);
+  declareRoutes(app);
+  connectedToDb();
+  listen(app);
 }
 
-const server = new Server();
+function initServer() {
+  return express();
+}
 
-server.start();
+function connectMiddlewares(app) {
+  app.use(express.json());
+}
+
+function declareRoutes(app) {
+  app.use("/api/contacts", contactsRouter);
+}
+
+async function connectedToDb() {
+  await mongoose.connect(process.env.MONGO_URL, {
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+    useFindAndModify: false
+  });
+  console.log("Database connection successful");
+}
+
+process.on("SIGINT", () => {
+  mongoose.connection.close(() => {
+    console.log("Connection for DB disconnected");
+    process.exit(1);
+  });
+});
+
+function listen(app) {
+  app.listen(PORT, () => {
+    console.log("server is listening on port:", PORT);
+  });
+}
