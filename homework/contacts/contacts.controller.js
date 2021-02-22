@@ -75,8 +75,10 @@ validateUpdateContact = (req, res, next) => {
   const validationRules = Joi.object({
     name: Joi.string(),
     email: Joi.string(),
-    phone: Joi.string()
-  }).min(1);
+    phone: Joi.string(),
+    subscription: Joi.string(),
+    password: Joi.string()
+  });
 
   const validationResult = validationRules.validate(req.body);
 

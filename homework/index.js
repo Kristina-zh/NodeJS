@@ -32,10 +32,18 @@ function declareRoutes(app) {
 async function connectedToDb() {
   await mongoose.connect(process.env.MONGO_URL, {
     useUnifiedTopology: true,
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    useFindAndModify: false
   });
   console.log("Database connection successful");
 }
+
+process.on("SIGINT", () => {
+  mongoose.connection.close(() => {
+    console.log("Connection for DB disconnected");
+    process.exit(1);
+  });
+});
 
 function listen(app) {
   app.listen(PORT, () => {
