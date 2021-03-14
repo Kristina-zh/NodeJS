@@ -1,9 +1,41 @@
 const {
   Types: { ObjectId }
 } = require("mongoose");
+const jwt = require("jsonwebtoken");
 
 const Contact = require("./Contact");
+const User = require("../users/User");
+
 const Joi = require("joi");
+
+async function authorize(req, res, next) {
+  const authorizationHeader = req.get("Authorization");
+  if (!authorizationHeader) {
+    return res.status(401).send("Not authorized");
+  }
+  const token = authorizationHeader.replace("Bearer ", "");
+
+  const payload = await jwt.verify(token, process.env.JWT_SECRET);
+  const { userId } = payload;
+  req.userId = userId;
+
+  console.log("userId :", userId);
+
+  try {
+    const payload = await jwt.verify(token, process.env.JWT_SECRET);
+    const { userId } = payload;
+
+    const user = await User.findById(userId);
+    req.user = user;
+    if (!user) {
+      return res.status(401).send("Not authorized");
+    }
+
+    next();
+  } catch (err) {
+    return res.status(401).send("Not authorized");
+  }
+}
 
 function validateContactId(req, res, next) {
   const {
@@ -18,7 +50,16 @@ function validateContactId(req, res, next) {
 }
 
 async function listContacts(req, res) {
-  const contacts = await Contact.find();
+  const { userId } = req;
+  // const page = 1;
+  // const PAGE_SIZE = 20;
+  console.log("userID :", userId);
+  const contacts = await Contact.find({
+    owner: userId
+  });
+  //   // .sort({ age: -1 })
+  //   .skip((page - 1) * PAGE_SIZE)
+  //   .limit(PAGE_SIZE);
   res.json(contacts);
 }
 
@@ -39,8 +80,10 @@ async function getById(req, res, next) {
 
 async function addContact(req, res) {
   try {
-    const { body } = req;
-    const contact = await Contact.create(body);
+    const { body, user } = req;
+    console.log("user :", user);
+    const contact = await Contact.create({ ...body, owner: user.id });
+    console.log("contact :", contact);
     res.json(contact);
   } catch (error) {
     if (error.keyPattern) {
@@ -50,8 +93,7 @@ async function addContact(req, res) {
       if (error.keyPattern.phone) {
         res.status(400).send('Поле "phone" має бути унікальним');
       }
-    } else console.log("error2 :", error);
-    res.status(400).send(error);
+    } else res.status(400).send(error);
   }
 }
 
@@ -97,8 +139,6 @@ async function updateContact(req, res, next) {
     new: true
   });
 
-  console.log("updateContact :", updateContact);
-
   if (!updateContact) {
     return res.status(400).send("Contact isn't found");
   }
@@ -114,5 +154,6 @@ module.exports = {
   removeContact,
   updateContact,
   validateContactId,
-  validateUpdateContact
+  validateUpdateContact,
+  authorize
 };

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const { Schema } = mongoose;
+const { SchemaTypes } = require("mongoose");
 
 const ContactSchema = new Schema({
   name: {
@@ -26,6 +27,10 @@ const ContactSchema = new Schema({
   password: {
     type: String,
     required: true
+  },
+  owner: {
+    type: SchemaTypes.ObjectId,
+    ref: "user"
   }
 });
 

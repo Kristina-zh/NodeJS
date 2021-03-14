@@ -3,13 +3,13 @@ const ContactController = require("./contacts.controller");
 
 const router = Router();
 
-router.get("/", ContactController.listContacts);
+router.get("/", ContactController.authorize, ContactController.listContacts);
 router.get(
   "/:contactId",
   ContactController.validateContactId,
   ContactController.getById
 );
-router.post("/", ContactController.addContact);
+router.post("/", ContactController.authorize, ContactController.addContact);
 router.delete(
   "/:contactId",
   ContactController.validateContactId,
